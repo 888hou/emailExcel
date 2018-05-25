@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>发送邮件</title>
-  <script src="jquery.js"></script>
   <style>
     
   </style>
@@ -13,8 +12,12 @@
     <div>发送邮件系统</div>
     <div>
       <input type="file" id="xlf">
-      <button>确认发送</button>
+      <div>邮箱地址: <input type="text" id="email"></div>
+      <div>密码: <input type="password" id="password"></div>
+      <button onclick="submit()">确认发送</button>
     </div>
+    <div id="excel"></div>
+    <div id="error"></div>
   </div>
 </body>
   <script src="manager.js"></script>
