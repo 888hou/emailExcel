@@ -1,21 +1,36 @@
 const nodemailer = require('nodemailer');
-var XLSX = require('xlsx')
+const XLSX = require('xlsx')
 var xlf = document.querySelector('#xlf');
 var rABS = true; // true: readAsBinaryString ; false: readAsArrayBuffer
-var loading = {}
 var workbook;
 var workbookJson;
+var number;
+var accepted;
+var rejected;
 
-
+function initial() {
+  number = 0;
+  accepted = [];
+  rejected = [];
+  document.querySelector('#reject').innerHTML = '';
+  document.querySelector('#error').innerHTML = '';
+}
 
 function handleFile(e) {
-  var files = e.target.files, f = files[0];
+
+  var files = e.target.files,
+    f = files[0];
   var reader = new FileReader();
   reader.onload = function(e) {
     var data = e.target.result;
-    if(!rABS) data = new Uint8Array(data);
-    workbook = XLSX.read(data, {type: rABS ? 'binary' : 'array'});
-    var workbookJson = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+    if (!rABS) data = new Uint8Array(data);
+    // 读取表格
+    workbook = XLSX.read(data, {
+      type: rABS ? 'binary' : 'array'
+    });
+    // 保存表格数组
+    workbookJson = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+    // 页面打印表格
     var html1 = ''
     workbookJson.map(data => {
       html1 += `<tr><td>${Object.values(data).join('</td><td>')}</td></tr>`;
@@ -25,36 +40,31 @@ function handleFile(e) {
         ${html1}
       </table>`;
     document.querySelector('#excel').innerHTML = html;
-
-    /* DO SOMETHING WITH workbook HERE */
   };
-  if(rABS){
+  if (rABS) {
     reader.readAsBinaryString(f)
-  }else {
+  } else {
     reader.readAsArrayBuffer(f)
   };
-  // return
-}
-
-function submit(e) {
-  var email = document.querySelector('#email').value;
-  var password = document.querySelector('#password').value;
-  console.log(email, password);
-  transfer(workbook, email, password)
 }
 xlf.addEventListener('change', handleFile, false);
 
+
+function submit(e) {
+  initial();
+  var email = document.querySelector('#email').value;
+  var password = document.querySelector('#password').value;
+  transfer(workbook, email, password)
+}
+
+// 将表格每行信息整理出来
 function transfer(workbook, email, password) {
-  // 读取excel文件
-  // var workbook = XLSX.readFile(path);
   // 获取第一个sheet名
   var first_sheet_name = workbook.SheetNames[0];
   var address_of_cell = 'A1';
   // 获取第一个sheet
   var worksheet = workbook.Sheets[first_sheet_name];
-  // console.log(worksheet);
   var range = XLSX.utils.decode_range(worksheet['!ref']);
-  console.log(range);
   // 获取第一个表格头部
   var table_head = [];
   for (var j = range.s.c; j <= range.e.c; ++j) {
@@ -87,40 +97,93 @@ function transfer(workbook, email, password) {
     var table = [table_head];
     table.push(stemp)
     var ws = XLSX.utils.sheet_to_json(XLSX.utils.aoa_to_sheet(table));
-    var html = `<table border="1" style="border-collapse:collapse"><tr><td>${Object.keys(ws[0]).join(`</td><td>`)}</td></tr><tr><td>${Object.values(ws[0]).join(`</td><td>`)}</td></tr></table>`;
-    
-    // 邮箱配置
-    var mailOptions = {
-      from: email, // sender address
-      to: address, // 发送邮箱，以逗号隔开
-      subject: 'node 小工具测试', // 主题
-      text: 'node 小工具测试', // plain text body
-      html, // html body,
-    };
-    var transporter = nodemailer.createTransport({
-      host: 'smtp.chinatelecom.cn',
-      port: 465,// SMTP 端口
-      secure: true, // 使用 SSL
-      auth: {
-        user: email, // generated ethereal user
-        pass: password 
-      }
-    });
-    // loading[address] = true;
-    document.getElementsByTagName('tr')[i].style.color = 'red';
-    transporter.sendMail(mailOptions, (error, info, data) => {
-      console.log(mailOptions.index);
-      // let index = JSON.strigify(workbookJson).indexOf(info.accepted)
-    // document.getElementsByTagName('tr')[mailOptions.index].style.color = 'green';
-      if (error) {
-        document.querySelector('#error').innerHTML = error.message
-        return console.log(error);
-      }
-    // document.getElementsByTagName('tr')[i].style.color = 'green';
-      console.log(info);
-      console.log('Message sent: %s', info.messageId);
-      transport.close();
-    });
+
+    send(email, password, address, ws);
+    document.getElementsByTagName('tr')[i].style.color = 'yellow';
+
   }
 }
 
+// 发送邮件
+function send(email, password, receiveAddress, sheetJson) {
+  var html = `<table border="1" style="border-collapse:collapse"><tr><td>${Object.keys(sheetJson[0]).join(`</td><td>`)}</td></tr><tr><td>${Object.values(sheetJson[0]).join(`</td><td>`)}</td></tr></table>`;
+  // 邮箱配置
+  var mailOptions = {
+    from: email, // sender address
+    to: receiveAddress, // 发送邮箱，以逗号隔开
+    subject: 'node 小工具测试', // 主题
+    text: 'node 小工具测试', // plain text body
+    html, // html body,
+  };
+  var transporter = nodemailer.createTransport({
+    host: 'smtp.chinatelecom.cn',
+    port: 465, // SMTP 端口
+    secure: true, // 使用 SSL
+    auth: {
+      user: email, // generated ethereal user
+      pass: password
+    }
+  });
+  console.log('发送的邮箱是==>', receiveAddress);
+  console.log('邮箱密码==>', email, password);
+  transporter.sendMail(mailOptions, (error, info, data) => {
+
+    number++;
+
+    if (error) {
+      // TODO 报错之后获取不到是哪一条的报错
+      let div = document.createElement("div");
+      div.innerHTML = error.message;
+      document.querySelector('#error').append(div)
+    }
+    // 将发送成功的存入accepted数组
+    info && accepted.push(info.accepted[0]);
+    // 如果全部发送完毕
+    if (number == workbookJson.length) {
+      checkRejected()
+    }
+    if (info) {
+      console.log('Message sent: %s', info.messageId);
+    }
+    transporter.close();
+  });
+}
+
+// 查看哪些是报错的
+function checkRejected() {
+  workbookJson.map((item, index) => {
+    let value = Object.values(item);
+    let address = value[value.length - 1];
+    if (accepted.indexOf(address) == -1) {
+      rejected.push(index)
+      document.getElementsByTagName('tr')[index + 1].style.color = 'red';
+    } else {
+      document.getElementsByTagName('tr')[index + 1].style.color = 'green';
+    }
+  })
+  if (rejected.length) {
+    let html2 = '';
+    rejected.map(i => {
+      html2 += `<tr><td>${Object.values(workbookJson[i]).join(`</td><td>`)}</td></tr>`
+    })
+    document.querySelector('#reject').innerHTML = `<div>发送失败列表</div><table border="1" style="border-collapse:collapse">
+        <tr><td>${Object.keys(workbookJson[0]).join(`</td><td>`)}</td></tr>
+        ${html2}
+      </table>`
+
+  }
+}
+
+function resubmit() {
+  rejected.map(index => {
+    initial();
+    var email = document.querySelector('#email').value;
+    var password = document.querySelector('#password').value;
+
+    let data = workbookJson[index];
+    let keys = Object.keys(data)
+    let address = data[keys[keys.length - 1]];
+    send(email, password, address, [data]);
+
+  })
+}
