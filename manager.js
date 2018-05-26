@@ -1,3 +1,6 @@
+window.onload = () => {
+
+
 const nodemailer = require('nodemailer');
 const XLSX = require('xlsx')
 var xlf = document.querySelector('#xlf');
@@ -5,12 +8,12 @@ var rABS = true; // true: readAsBinaryString ; false: readAsArrayBuffer
 var workbook;
 var workbookJson;
 var number;
-var accepted;
+var accepted = [];
 var rejected;
 
 function initial() {
   number = 0;
-  accepted = [];
+  // accepted = [];
   rejected = [];
   document.querySelector('#reject').innerHTML = '';
   document.querySelector('#error').innerHTML = '';
@@ -20,6 +23,8 @@ function handleFile(e) {
 
   var files = e.target.files,
     f = files[0];
+  document.querySelector('.icon').className='glyphicon glyphicon-folder-close icon'
+  document.querySelector('.head-icon-text').innerHTML = f.name;
   var reader = new FileReader();
   reader.onload = function(e) {
     var data = e.target.result;
@@ -50,7 +55,8 @@ function handleFile(e) {
 xlf.addEventListener('change', handleFile, false);
 
 
-function submit(e) {
+submit = function(e) {
+  document.querySelector('#submit').innerHTML = '正在处理';
   initial();
   var email = document.querySelector('#email').value;
   var password = document.querySelector('#password').value;
@@ -98,14 +104,15 @@ function transfer(workbook, email, password) {
     table.push(stemp)
     var ws = XLSX.utils.sheet_to_json(XLSX.utils.aoa_to_sheet(table));
 
-    send(email, password, address, ws);
+    send(email, password, address, ws, workbookJson.length);
     document.getElementsByTagName('tr')[i].style.color = 'yellow';
 
   }
 }
 
 // 发送邮件
-function send(email, password, receiveAddress, sheetJson) {
+function send(email, password, receiveAddress, sheetJson, postNum) {
+  console.log(postNum)
   var html = `<table border="1" style="border-collapse:collapse"><tr><td>${Object.keys(sheetJson[0]).join(`</td><td>`)}</td></tr><tr><td>${Object.values(sheetJson[0]).join(`</td><td>`)}</td></tr></table>`;
   // 邮箱配置
   var mailOptions = {
@@ -126,6 +133,8 @@ function send(email, password, receiveAddress, sheetJson) {
   });
   console.log('发送的邮箱是==>', receiveAddress);
   console.log('邮箱密码==>', email, password);
+  document.querySelector('#submit').innerHTML = '正在发送';
+
   transporter.sendMail(mailOptions, (error, info, data) => {
 
     number++;
@@ -135,11 +144,12 @@ function send(email, password, receiveAddress, sheetJson) {
       let div = document.createElement("div");
       div.innerHTML = error.message;
       document.querySelector('#error').append(div)
+      console.log('错误')
     }
     // 将发送成功的存入accepted数组
     info && accepted.push(info.accepted[0]);
     // 如果全部发送完毕
-    if (number == workbookJson.length) {
+    if (number == postNum) {
       checkRejected()
     }
     if (info) {
@@ -166,24 +176,30 @@ function checkRejected() {
     rejected.map(i => {
       html2 += `<tr><td>${Object.values(workbookJson[i]).join(`</td><td>`)}</td></tr>`
     })
-    document.querySelector('#reject').innerHTML = `<div>发送失败列表</div><table border="1" style="border-collapse:collapse">
+    document.querySelector('#reject').innerHTML = `<div class="excel"><div class="content-title">发送失败列表</div><table border="1" style="border-collapse:collapse">
         <tr><td>${Object.keys(workbookJson[0]).join(`</td><td>`)}</td></tr>
         ${html2}
-      </table>`
-
+      </table></div>
+      <button onclick="resubmit()" class="btn btn-warning btn-lg">重新发送失败列表</button>`
+    document.querySelector('#submit').innerHTML = '确认发送邮件';
+  } else {
+    document.querySelector('#submit').innerHTML = '发送成功';
   }
 }
 
-function resubmit() {
-  rejected.map(index => {
-    initial();
-    var email = document.querySelector('#email').value;
-    var password = document.querySelector('#password').value;
+resubmit = function() {
+  let rejectedList = rejected;
+  initial();
+  var email = document.querySelector('#email').value;
+  var password = document.querySelector('#password').value;
+  rejectedList.map(index => {
 
     let data = workbookJson[index];
     let keys = Object.keys(data)
     let address = data[keys[keys.length - 1]];
-    send(email, password, address, [data]);
+    send(email, password, address, [data], rejectedList.length);
 
   })
+}
+
 }

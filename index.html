@@ -3,25 +3,134 @@
 <head>
   <meta charset="UTF-8">
   <title>发送邮件</title>
+  <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <!-- <script src="node_modules/jquery/dist/jquery.min.js"/> -->
+  <!-- <script src="bootstrap/js/bootstrap.min.js"/> -->
   <style>
-    
+    .contain{
+      font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    .head {
+      background: #9f80a7;
+      width: 100%;
+      height: 420px;
+      text-align: center;
+    }
+    .head-title {
+      font-size: 30px;
+      padding: 20px 0;
+      color: #ffffff;
+    }
+    .head-input {
+      position: relative;
+    color: transparent;
+    z-index: 16;
+    width: 38rem;
+    height: 14rem;
+    margin: 1rem auto 3rem;
+    border: .2rem dashed #616778;
+    border-radius: 1.5rem;
+    }
+    .head-input input {
+      cursor: pointer;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+
+    }
+    .head-middle {
+      position: absolute;
+      top: 30px;
+      left: 50%;
+      z-index: -1;
+      
+    }
+    .head-icon {
+      position: relative;
+      /*top: -50%;*/
+      left: -50%;
+    }
+    .head-icon span {
+      color: #40444f;
+      display: block;
+      text-align: center;
+      font-size: 16px;
+    }
+    .head-icon .icon {
+      font-size: 50px;
+      margin-bottom: 15px;
+    }
+    .excel table {
+      height: 100px;
+      overflow: auto;
+      margin: 10px auto;
+      width: 80rem;
+    }
+    .head-inputs {
+      margin-bottom: 40px;
+    }
+    .head-inputs span {
+      margin-right: 20px;
+      font-size: 16px;
+      color: #ffffff;
+    }
+    .head-inputs input {
+      background: #dbd4e0;
+      border-radius: 4px;
+      padding: 5px;
+      border: 0;
+      color: #473e48;
+      outline: none;
+    }
+    .content {
+      width: 100%;
+      text-align: center;
+    }
+    .content-title {
+      font-size: 25px;
+      padding: 20px 0;
+    }
+    .content-error {
+      margin-top: 10px;
+      color: #dc2323;
+      background: #000;
+      width: 80rem;
+      display: inline-block;
+      border-radius: 4px;
+    }
+    .content-error div {
+      margin: 10px;
+    }
   </style>
 </head>
 <body>
-  <div>
-    <div>发送邮件系统</div>
-    <div>
-      <input type="file" id="xlf">
-      <div>邮箱地址: <input type="text" id="email"></div>
-      <div>密码: <input type="password" id="password"></div>
-      <button onclick="submit()">确认发送</button>
+  <div class="contain">
+  <div class="head">
+    <div class="head-title">发送邮件系统</div>
+    <div class="head-inputs">
+      <span>邮箱地址: <input type="text" id="email"></span>
+      <span>密码: <input type="password" id="password"></span>
     </div>
-    <div id="excel"></div>
-    <div id="reject"></div>
-    <button onclick="resubmit()">重新发送</button>
-    <div>错误信息</div>
-    <div id="error"></div>
+    <div class="head-input">
+      <input type="file" id="xlf">
+      <div class="head-middle">
+        <div class="head-icon">
+          <span class="glyphicon glyphicon-download-alt icon" aria-hidden="true"></span>
+          <span class="head-icon-text">请选择excel文件</span>
+        </div>
+      </div>
+    </div>
+    <button onclick="submit()" class="btn btn-warning btn-lg" type="button" id="submit">确认发送邮件</button>
+    <!-- <div id="drop" class="drop"></div> -->
   </div>
+    <div class="content">
+      <div class="content-title">详细信息</div>
+      <div id="excel" class="excel"></div>
+      <div id="reject"></div>
+      <div id="error" class="content-error"></div>
+    </div>
+<button type="button" class="btn btn-default">（默认样式）Default</button>  </div>
 </body>
   <script src="manager.js"></script>
 </html>
