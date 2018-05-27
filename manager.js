@@ -131,6 +131,7 @@ function send(email, password, receiveAddress, sheetJson, postNum) {
       pass: password
     }
   });
+
   console.log('发送的邮箱是==>', receiveAddress);
   console.log('邮箱密码==>', email, password);
   document.querySelector('#submit').innerHTML = '正在发送';
