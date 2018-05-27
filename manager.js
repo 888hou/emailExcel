@@ -131,6 +131,7 @@ function send(email, password, receiveAddress, sheetJson, postNum) {
       pass: password
     }
   });
+
   console.log('发送的邮箱是==>', receiveAddress);
   console.log('邮箱密码==>', email, password);
   document.querySelector('#submit').innerHTML = '正在发送';
@@ -141,6 +142,7 @@ function send(email, password, receiveAddress, sheetJson, postNum) {
 
     if (error) {
       // TODO 报错之后获取不到是哪一条的报错
+      console.log(info);
       let div = document.createElement("div");
       div.innerHTML = error.message;
       document.querySelector('#error').append(div)
