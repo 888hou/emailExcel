@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron --inspect=5858 .",
-    "packager": "electron-packager . EmailExcel --all --out ./dist --app-version 0.0.1 --overwrite"
+    "packager": "electron-packager . EmailExcel --win --out ./dist --app-version 0.0.1 --overwrite"
   },
   "author": "",
   "license": "ISC",

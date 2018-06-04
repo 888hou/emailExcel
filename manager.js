@@ -7,6 +7,7 @@ window.onload = () => {
   var rABS = true; // true: readAsBinaryString ; false: readAsArrayBuffer
   var workbookJson;
   var rejected = [];
+  var file;
   var buttonText = [
     { text: '确认发送邮件', disable: false, className: 'btn btn-default btn-lg' },
     { text: '正在发送', disable: true, className: 'btn btn-warning btn-lg' },
@@ -32,10 +33,10 @@ window.onload = () => {
 
   function handleFile(e) {
     initial();
-    var files = e.target.files,
-      f = files[0];
+    var files = e.target.files;
+    file = files[0];
     document.querySelector('.icon').className = 'glyphicon glyphicon-folder-close icon'
-    document.querySelector('.head-icon-text').innerHTML = f.name;
+    document.querySelector('.head-icon-text').innerHTML = file.name;
     var reader = new FileReader();
     reader.onload = function(e) {
       var data = e.target.result;
@@ -50,9 +51,9 @@ window.onload = () => {
       document.querySelector('#excel').innerHTML = transformToTable(workbookJson);
     };
     if (rABS) {
-      reader.readAsBinaryString(f)
+      reader.readAsBinaryString(file)
     } else {
-      reader.readAsArrayBuffer(f)
+      reader.readAsArrayBuffer(file)
     };
   }
 
@@ -83,10 +84,13 @@ window.onload = () => {
   function send(email, password, postJson) {
     setButtonText(1);
     console.log('发送', postJson);
+    let fileName = file.name.split('.');
+    fileName.pop();
     initMail(email, password).then(transporter => {
         let promises = postJson.map(data => {
           return sendMail(transporter, {
             ...data,
+            subject:fileName.join('.'), 
             fromEmail: email,
           })
         })

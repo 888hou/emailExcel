@@ -25,13 +25,13 @@ function initMail(email, password) {
 }
 
 // 发送邮件
-function sendMail(transporter, { fromEmail, toEmail, sheetJson }) {
-  var html = `<table border="1" style="border-collapse:collapse"><tr><td>${Object.keys(sheetJson).join(`</td><td>`)}</td></tr><tr><td>${Object.values(sheetJson).join(`</td><td>`)}</td></tr></table>`;
+function sendMail(transporter, { fromEmail, toEmail, sheetJson, subject }) {
+  var html = `<table border="1" style="border-collapse:collapse; font-size: 12px"><tr><td>${Object.keys(sheetJson).join(`</td><td>`)}</td></tr><tr><td>${Object.values(sheetJson).join(`</td><td>`)}</td></tr></table>`;
   var mailOptions = {
     from: fromEmail, // sender address
     to: toEmail, // 发送邮箱，以逗号隔开
-    subject: 'node 小工具测试', // 主题
-    text: 'node 小工具测试', // plain text body
+    subject: subject, // 主题
+    text: subject, // plain text body
     html, // html body,
   };
   var promise = new Promise(function(resolve, reject) {
