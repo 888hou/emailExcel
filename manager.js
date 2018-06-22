@@ -15,15 +15,16 @@ class PageHandler {
       { text: '确认发送邮件', disable: false, className: 'btn btn-default btn-lg' },
       { text: '正在发送', disable: true, className: 'btn btn-warning btn-lg' },
       { text: '重新发送失败列表', disable: false, className: 'btn btn-danger btn-lg' },
-      { text: '发送成功', disable: true, className: 'btn btn-success btn-lg' }
+      { text: '发送成功', disable: true, className: 'btn btn-success btn-lg' },
+      { text: '上传文件', disable: true, className: 'btn btn-default btn-lg' },
     ];
     this.init();
+    this.bindEvent();
   }
 
   init() {
     document.querySelector('#error').style.display = 'none';
-    this.setButtonText(0);
-    this.bindEvent();
+    this.setButtonText(4);
   }
 
   bindEvent() {
@@ -51,11 +52,14 @@ class PageHandler {
     var self = this;
     let { rABS, workbookJson, file } = self;
     self.init();
-    // initial();
     var files = e.target.files;
-    self.file = file = files[0];
-    document.querySelector('.icon').className = 'glyphicon glyphicon-folder-close icon'
-    document.querySelector('.head-icon-text').innerHTML = file.name;
+    self.file = file = files[0] || file;
+    if(file) {
+      document.querySelector('.icon').className = 'glyphicon glyphicon-folder-close icon'
+      document.querySelector('.head-icon-text').innerHTML = file.name;
+      this.setButtonText(0);
+    }
+
     var reader = new FileReader();
     reader.onload = function(e) {
       var data = e.target.result;
@@ -65,9 +69,9 @@ class PageHandler {
         type: rABS ? 'binary' : 'array'
       });
       // 保存表格数组
-      workbookJson = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+      self.workbookJson = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
       // 页面打印表格
-      document.querySelector('#excel').innerHTML = transformToTable(workbookJson);
+      document.querySelector('#excel').innerHTML = transformToTable(self.workbookJson);
     };
     if (rABS) {
       reader.readAsBinaryString(file)
@@ -78,6 +82,7 @@ class PageHandler {
   }
 
   handleSubmit(e) {
+    e.stopPropagation();
     var self = this;
     let { workbookJson } = self;
     document.querySelector('#error').style.display = 'none';
