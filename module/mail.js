@@ -25,7 +25,7 @@ function initMail(email, password) {
 }
 
 // 发送邮件
-function sendMail(transporter, { fromEmail, toEmail, sheetJson, subject }) {
+function sendMail(transporter, { fromEmail, toEmail, sheetJson, subject, originJson }) {
   var html = `<table border="1" style="border-collapse:collapse; font-size: 12px"><tr><td>${Object.keys(sheetJson).join(`</td><td>`)}</td></tr><tr><td>${Object.values(sheetJson).join(`</td><td>`)}</td></tr></table>`;
   var mailOptions = {
     from: fromEmail, // sender address
@@ -39,10 +39,10 @@ function sendMail(transporter, { fromEmail, toEmail, sheetJson, subject }) {
 
       if (error) {
         // 抛出异常
-        resolve({ code: 502, msg: '邮箱发送失败', data: sheetJson, error })
+        resolve({ code: 502, msg: '邮箱发送失败', data: originJson, error })
       } else {
         transporter.close();
-        resolve({ code: 200, msg: '邮箱发送成功', data: sheetJson, info })
+        resolve({ code: 200, msg: '邮箱发送成功', data: originJson, info })
       }
     });
   })

@@ -1,8 +1,15 @@
 /*  require 一般全局 */
 const nodemailer = require('nodemailer');
 const XLSX = require('xlsx');
-const { initMail, sendMail } = require('./module/mail');
-const { transformToTable, transformToEmailJson } = require('./module/transform');
+const fs = require('fs');
+const {
+  initMail,
+  sendMail
+} = require('./module/mail');
+const {
+  transformToTable,
+  transformToEmailJson
+} = require('./module/transform');
 
 
 class PageHandler {
@@ -11,12 +18,31 @@ class PageHandler {
     this.workbookJson = [];
     this.rejected = [];
     this.file = null;
-    this.buttonText = [
-      { text: '确认发送邮件', disable: false, className: 'btn btn-default btn-lg' },
-      { text: '正在发送', disable: true, className: 'btn btn-warning btn-lg' },
-      { text: '重新发送失败列表', disable: false, className: 'btn btn-danger btn-lg' },
-      { text: '发送成功', disable: true, className: 'btn btn-success btn-lg' },
-      { text: '上传文件', disable: true, className: 'btn btn-default btn-lg' },
+    this.buttonText = [{
+        text: '确认发送邮件',
+        disable: false,
+        className: 'btn btn-default btn-lg'
+      },
+      {
+        text: '正在发送',
+        disable: true,
+        className: 'btn btn-warning btn-lg'
+      },
+      {
+        text: '重新发送失败列表',
+        disable: false,
+        className: 'btn btn-danger btn-lg'
+      },
+      {
+        text: '发送成功',
+        disable: true,
+        className: 'btn btn-success btn-lg'
+      },
+      {
+        text: '上传文件',
+        disable: true,
+        className: 'btn btn-default btn-lg'
+      },
     ];
     this.init();
     this.bindEvent();
@@ -25,6 +51,7 @@ class PageHandler {
   init() {
     document.querySelector('#error').style.display = 'none';
     this.setButtonText(4);
+    this.rejected = [];
   }
 
   bindEvent() {
@@ -41,7 +68,11 @@ class PageHandler {
   }
 
   setButtonText(status) {
-    let { text, disable, className } = this.buttonText[status];
+    let {
+      text,
+      disable,
+      className
+    } = this.buttonText[status];
     let $submit = document.querySelector('#submit')
     $submit.innerHTML = text;
     $submit.disabled = disable;
@@ -50,18 +81,22 @@ class PageHandler {
 
   handleFile(e) {
     var self = this;
-    let { rABS, workbookJson, file } = self;
+    let {
+      rABS,
+      workbookJson,
+      file
+    } = self;
     self.init();
     var files = e.target.files;
     self.file = file = files[0] || file;
-    if(file) {
+    if (file) {
       document.querySelector('.icon').className = 'glyphicon glyphicon-folder-close icon'
       document.querySelector('.head-icon-text').innerHTML = file.name;
       this.setButtonText(0);
     }
 
     var reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
       var data = e.target.result;
       if (!rABS) data = new Uint8Array(data);
       // 读取表格
@@ -84,7 +119,9 @@ class PageHandler {
   handleSubmit(e) {
     e.stopPropagation();
     var self = this;
-    let { workbookJson } = self;
+    let {
+      workbookJson
+    } = self;
     document.querySelector('#error').style.display = 'none';
     var email = document.querySelector('#email').value;
     var password = document.querySelector('#password').value;
@@ -106,9 +143,22 @@ class PageHandler {
     document.querySelector('.input-error').style.display = success ? 'none' : 'block';
   }
 
+  saveToXlsx(rejected) {
+    try {
+      var ws = XLSX.utils.json_to_sheet(rejected);
+      var wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Bookmarks');
+      XLSX.writeFile(wb, "errPost.xlsx");
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   send(email, password, postJson) {
     var self = this;
-    let { file } = self;
+    let {
+      file
+    } = self;
     self.setButtonText(1);
     console.log('发送', postJson);
     let fileName = file.name.split('.');
@@ -127,9 +177,13 @@ class PageHandler {
         // 如果有发送错误的展示错误列表
         if (rejectData.length) {
           var rejects = rejectData.map(reject => {
-            return { ...reject.data, '错误信息': reject.error }
+            return { ...reject.data,
+              '错误信息': reject.error
+            }
           })
           self.rejected = rejectData.map(reject => reject.data);
+          // 将发送错的列表保存在本地
+          self.saveToXlsx(self.rejected);
           // 展示错误列表
           document.querySelector('#error').style.display = 'block';
           document.querySelector('#reject').innerHTML = transformToTable(rejects);

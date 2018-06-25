@@ -12,8 +12,13 @@ function transformToTable(sheetJson) {
 
 function transformToEmailJson(workbookJson) {
   var postJson = workbookJson.map(data => {
-    let values = Object.values(data);
-    return { toEmail: values[values.length - 1], sheetJson: data }
+    // let values = Object.values(data);
+    // var json = data;
+    let keys = Object.keys(data);
+    let emailKey = keys[keys.length -1];
+    let toEmail = data[emailKey];
+    delete data[emailKey];
+    return { toEmail, sheetJson: data, originJson: {...data, [emailKey]: toEmail} }
   })
   return postJson;
 }
